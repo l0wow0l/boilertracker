@@ -1,0 +1,352 @@
+<title>Boiler Tray</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: one narrow column. Sticky tray summary on top, today's log, then the menu picker. */
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --ink: #1c1b18;
+  --muted: #6d6a62;
+  --line: #dedbd2;
+  --gold: #8a6a2f;
+  --gold-soft: #efe6d1;
+  --protein: #2f6f5e;
+  --carb: #b0782a;
+  --fat: #9a4a3c;
+  --font-display: "Archivo", "Noto Sans KR", system-ui, sans-serif;
+  --font-body: "Noto Sans KR", system-ui, -apple-system, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121211; --surface: #1c1b19; --ink: #efece4; --muted: #a09c90; --line: #34322d;
+    --gold: #cfb991; --gold-soft: #2b261b; --protein: #6fc2a8; --carb: #e0a85a; --fat: #e0897a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121211; --surface: #1c1b19; --ink: #efece4; --muted: #a09c90; --line: #34322d;
+  --gold: #cfb991; --gold-soft: #2b261b; --protein: #6fc2a8; --carb: #e0a85a; --fat: #e0897a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 0 48px; }
+.wrap { max-width: 520px; margin-inline: auto; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+
+.tray { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 14px 12px; border-bottom: 1px solid var(--line); }
+.tray-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; letter-spacing: .06em; text-transform: uppercase; margin: 0; }
+.date { color: var(--muted); font-size: .8rem; }
+.kcal { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.kcal strong { font-family: var(--font-display); font-weight: 800; font-size: 2.6rem; line-height: 1; }
+.kcal span { color: var(--muted); font-size: .9rem; }
+.goal { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: .8rem; color: var(--muted); }
+.goal input { width: 4.8em; padding: 4px 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; text-align: right; }
+.bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--line); margin-top: 10px; }
+.bar i { display: block; height: 100%; }
+.macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.macro { font-size: .78rem; color: var(--muted); }
+.macro b { display: block; font-family: var(--font-num); font-weight: 500; font-size: 1.05rem; color: var(--ink); }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+
+section { margin-top: 24px; }
+h2 { font-family: var(--font-display); font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.linkbtn { background: none; border: 0; color: var(--gold); font-size: .8rem; padding: 4px 0; text-transform: none; letter-spacing: 0; font-family: var(--font-body); }
+
+.list { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.row .info { flex: 1; min-width: 0; }
+.row .name { font-weight: 500; overflow-wrap: anywhere; }
+.row .sub { color: var(--muted); font-size: .78rem; }
+.row .kc { font-family: var(--font-num); font-size: .9rem; white-space: nowrap; }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.stepper button { width: 32px; height: 32px; background: none; border: 0; font-size: 1.1rem; }
+.stepper span { min-width: 2.6em; text-align: center; font-family: var(--font-num); font-size: .85rem; }
+.add { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--gold); background: var(--gold-soft); color: var(--gold); font-size: 1.3rem; line-height: 1; }
+.empty { padding: 18px 0; color: var(--muted); font-size: .9rem; }
+
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; font-size: .82rem; color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.search { width: 100%; padding: 9px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; }
+
+details { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 10px; }
+summary { cursor: pointer; font-weight: 500; }
+.panel { display: flex; flex-direction: column; gap: 10px; padding-block: 12px; font-size: .88rem; }
+.panel p { margin: 0; color: var(--muted); }
+.form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.form input { width: 100%; min-width: 0; padding: 8px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.form .full { grid-column: 1 / -1; }
+.btn { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); font-weight: 500; }
+.btn.ghost { background: none; color: var(--ink); border-color: var(--line); }
+code { font-family: var(--font-num); font-size: .82em; background: var(--gold-soft); padding: 1px 5px; border-radius: 4px; }
+.note { font-size: .78rem; color: var(--muted); margin-top: 16px; }
+</style>
+
+<div class="wrap">
+  <header class="tray">
+    <div class="tray-top">
+      <h1>Boiler Tray</h1>
+      <span class="date" id="date"></span>
+    </div>
+    <div class="kcal">
+      <strong class="num" id="kcal">0</strong><span>kcal</span>
+      <label class="goal" for="goal">목표 <input id="goal" class="num" type="number" inputmode="numeric" min="0" step="50" placeholder="—"></label>
+    </div>
+    <div class="bar" id="bar" aria-hidden="true"></div>
+    <div class="macros">
+      <div class="macro"><span class="dot" style="background:var(--protein)"></span>단백질<b id="mp">0g</b></div>
+      <div class="macro"><span class="dot" style="background:var(--carb)"></span>탄수화물<b id="mc">0g</b></div>
+      <div class="macro"><span class="dot" style="background:var(--fat)"></span>지방<b id="mf">0g</b></div>
+    </div>
+  </header>
+
+  <section>
+    <h2>오늘 먹은 것 <button class="linkbtn" id="clear" type="button">전체 지우기</button></h2>
+    <div class="list" id="log"></div>
+  </section>
+
+  <section>
+    <h2>메뉴 <span id="menuMeta" class="date"></span></h2>
+    <div class="chips" id="mealChips" role="group" aria-label="식사 시간"></div>
+    <div class="chips" id="locChips" role="group" aria-label="식당"></div>
+    <input class="search" id="q" type="search" placeholder="메뉴 검색 (예: chicken)" aria-label="메뉴 검색">
+    <div class="list" id="menu"></div>
+  </section>
+
+  <details>
+    <summary>직접 추가 · 메뉴 불러오기</summary>
+    <div class="panel">
+      <p>목록에 없는 음식은 직접 입력해서 추가할 수 있어요. 1회 제공량 기준으로 적어 주세요.</p>
+      <form class="form" id="customForm">
+        <input class="full" id="cName" type="text" placeholder="음식 이름" required>
+        <input id="cCal" type="number" inputmode="decimal" min="0" placeholder="칼로리 (kcal)" required>
+        <input id="cServ" type="text" placeholder="1회 제공량 (예: 1 cup)">
+        <input id="cP" type="number" inputmode="decimal" min="0" placeholder="단백질 (g)">
+        <input id="cC" type="number" inputmode="decimal" min="0" placeholder="탄수화물 (g)">
+        <input id="cF" type="number" inputmode="decimal" min="0" placeholder="지방 (g)">
+        <button class="btn full" type="submit">추가해서 오늘 기록에 넣기</button>
+      </form>
+      <p>전체 식당 메뉴는 <code>purdue_menu.py</code>를 실행해 만든 <code>menu.json</code> 파일을 불러오면 채워져요.</p>
+      <input id="file" type="file" accept="application/json,.json" aria-label="menu.json 불러오기">
+      <button class="btn ghost" id="reset" type="button">기본 샘플 메뉴로 되돌리기</button>
+    </div>
+  </details>
+
+  <p class="note">기본 샘플은 2026년 10월 13일 Wiley Dining Court 메뉴 일부이고, 수치는 Purdue Dining 공개 데이터에서 가져왔어요. 실제 먹은 양과 다를 수 있으니 대략적인 기록용으로 쓰세요.</p>
+</div>
+
+<script>
+(function () {
+  var SAMPLE = {
+    date: "2026-10-13",
+    items: [
+      { id: "s1", name: "Scrambled Eggs", serving: "1/2 cup", cal: 155, p: 11.1, c: 2.2, f: 12.2, loc: "Wiley", meal: "Breakfast" },
+      { id: "s2", name: "Hash Brown", serving: "1 each", cal: 101, p: 1.0, c: 14.2, f: 4.1, loc: "Wiley", meal: "Breakfast" },
+      { id: "s3", name: "Oatmeal", serving: "1/2 cup", cal: 80, p: 2.7, c: 14.4, f: 1.6, loc: "Wiley", meal: "Breakfast" },
+      { id: "s4", name: "Hard Cooked Eggs", serving: "1 egg", cal: 62, p: 5.5, c: 0.3, f: 4.2, loc: "Wiley", meal: "Breakfast" },
+      { id: "s5", name: "Mandarin Oranges", serving: "1/2 cup", cal: 100, p: 1.0, c: 24, f: 0, loc: "Wiley", meal: "Lunch" },
+      { id: "s6", name: "Chicken Tinga", serving: "1 cup", cal: 345, p: 27.2, c: 14.5, f: 19.4, loc: "Wiley", meal: "Lunch" },
+      { id: "s7", name: "Lilian's Poblano Rice", serving: "1/2 cup", cal: 194, p: 2.6, c: 26.4, f: 8.1, loc: "Wiley", meal: "Lunch" },
+      { id: "s8", name: "Boneless Chicken Wings", serving: "6 pieces", cal: 313, p: 17.4, c: 24.3, f: 12.2, loc: "Wiley", meal: "Lunch" },
+      { id: "s9", name: "Macaroni & Cheese", serving: "3/4 cup", cal: 381, p: 16.3, c: 34.2, f: 19.7, loc: "Wiley", meal: "Lunch" },
+      { id: "s10", name: "Meat Lover's Pizza", serving: "6 cuts", cal: 648, p: 31.5, c: 66.4, f: 28.2, loc: "Wiley", meal: "Lunch" },
+      { id: "s11", name: "Vegetarian Burger", serving: "1 burger", cal: 190, p: 11, c: 27, f: 5, loc: "Wiley", meal: "Lunch" },
+      { id: "s12", name: "Roasted Green Beans", serving: "1/2 cup", cal: 81, p: 2.4, c: 8.4, f: 4.2, loc: "Wiley", meal: "Dinner" },
+      { id: "s13", name: "La Fonda Ribs", serving: "2 ribs", cal: 769, p: 46.1, c: 0.2, f: 63.3, loc: "Wiley", meal: "Dinner" }
+    ]
+  };
+  var MEAL_KO = { All: "전체", Breakfast: "아침", Lunch: "점심", Dinner: "저녁", Custom: "직접 추가" };
+  var KEY = "boilerTray.v1";
+  var state = { menu: SAMPLE, custom: [], log: [], goal: "", meal: "All", loc: "All", q: "", day: today() };
+
+  function today() {
+    var d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      var s = JSON.parse(raw);
+      if (s.menu && s.menu.items) state.menu = s.menu;
+      if (Array.isArray(s.custom)) state.custom = s.custom;
+      if (s.goal) state.goal = s.goal;
+      if (s.day === state.day && Array.isArray(s.log)) state.log = s.log;
+    } catch (e) {}
+  }
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ menu: state.menu, custom: state.custom, log: state.log, goal: state.goal, day: state.day }));
+    } catch (e) {}
+  }
+  function allItems() { return state.menu.items.concat(state.custom); }
+  function byId(id) { return allItems().find(function (i) { return i.id === id; }); }
+  function r(n) { return Math.round(n); }
+  function r1(n) { return Math.round(n * 10) / 10; }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function addLog(id) {
+    var hit = state.log.find(function (l) { return l.id === id; });
+    if (hit) hit.qty += 1; else state.log.push({ id: id, qty: 1 });
+    save(); render();
+  }
+  function stepLog(id, delta) {
+    var hit = state.log.find(function (l) { return l.id === id; });
+    if (!hit) return;
+    hit.qty = Math.round((hit.qty + delta) * 10) / 10;
+    if (hit.qty <= 0) state.log = state.log.filter(function (l) { return l.id !== id; });
+    save(); render();
+  }
+
+  function renderSummary() {
+    var t = { cal: 0, p: 0, c: 0, f: 0 };
+    state.log.forEach(function (l) {
+      var it = byId(l.id); if (!it) return;
+      t.cal += it.cal * l.qty; t.p += (it.p || 0) * l.qty; t.c += (it.c || 0) * l.qty; t.f += (it.f || 0) * l.qty;
+    });
+    document.getElementById("kcal").textContent = r(t.cal).toLocaleString();
+    document.getElementById("mp").textContent = r(t.p) + "g";
+    document.getElementById("mc").textContent = r(t.c) + "g";
+    document.getElementById("mf").textContent = r(t.f) + "g";
+    var bar = document.getElementById("bar");
+    bar.textContent = "";
+    var kp = t.p * 4, kc = t.c * 4, kf = t.f * 9, sum = kp + kc + kf;
+    if (sum > 0) {
+      [[kp, "--protein"], [kc, "--carb"], [kf, "--fat"]].forEach(function (x) {
+        var i = document.createElement("i"); i.style.width = (x[0] / sum * 100) + "%"; i.style.background = "var(" + x[1] + ")"; bar.appendChild(i);
+      });
+    }
+    var g = parseFloat(state.goal);
+    var goalEl = document.querySelector(".kcal span");
+    goalEl.textContent = g > 0 ? "/ " + g.toLocaleString() + " kcal · " + (t.cal <= g ? r(g - t.cal) + " 남음" : r(t.cal - g) + " 초과") : "kcal";
+  }
+
+  function renderLog() {
+    var box = document.getElementById("log");
+    box.textContent = "";
+    if (!state.log.length) {
+      box.appendChild(el("div", "empty", "아직 기록이 없어요. 아래 메뉴에서 + 를 눌러 먹은 음식을 추가하세요."));
+      return;
+    }
+    state.log.forEach(function (l) {
+      var it = byId(l.id); if (!it) return;
+      var row = el("div", "row");
+      var info = el("div", "info");
+      info.appendChild(el("div", "name", it.name));
+      info.appendChild(el("div", "sub", (it.serving || "1회") + " × " + l.qty + " · P " + r(it.p * l.qty) + " C " + r(it.c * l.qty) + " F " + r(it.f * l.qty)));
+      var st = el("div", "stepper");
+      var minus = el("button", null, "−"); minus.type = "button"; minus.setAttribute("aria-label", it.name + " 줄이기");
+      minus.onclick = function () { stepLog(l.id, l.qty > 1 ? -1 : -0.5); };
+      var plus = el("button", null, "+"); plus.type = "button"; plus.setAttribute("aria-label", it.name + " 늘리기");
+      plus.onclick = function () { stepLog(l.id, 1); };
+      st.appendChild(minus); st.appendChild(el("span", null, "×" + l.qty)); st.appendChild(plus);
+      var kc = el("div", "kc", r(it.cal * l.qty) + " kcal");
+      row.appendChild(info); row.appendChild(kc); row.appendChild(st);
+      box.appendChild(row);
+    });
+  }
+
+  function chipRow(container, values, current, labelFn, onPick) {
+    container.textContent = "";
+    values.forEach(function (v) {
+      var b = el("button", "chip", labelFn(v)); b.type = "button";
+      b.setAttribute("aria-pressed", String(v === current));
+      b.onclick = function () { onPick(v); };
+      container.appendChild(b);
+    });
+  }
+
+  function renderMenu() {
+    var items = allItems();
+    var meals = ["All"], locs = ["All"];
+    items.forEach(function (i) {
+      if (meals.indexOf(i.meal) < 0) meals.push(i.meal);
+      if (locs.indexOf(i.loc) < 0) locs.push(i.loc);
+    });
+    if (meals.indexOf(state.meal) < 0) state.meal = "All";
+    if (locs.indexOf(state.loc) < 0) state.loc = "All";
+    chipRow(document.getElementById("mealChips"), meals, state.meal, function (v) { return MEAL_KO[v] || v; }, function (v) { state.meal = v; renderMenu(); });
+    var locBox = document.getElementById("locChips");
+    if (locs.length > 2) chipRow(locBox, locs, state.loc, function (v) { return v === "All" ? "모든 식당" : v; }, function (v) { state.loc = v; renderMenu(); });
+    else locBox.textContent = "";
+    document.getElementById("menuMeta").textContent = state.menu.date + " · " + state.menu.items.length + "개";
+
+    var q = state.q.trim().toLowerCase();
+    var shown = items.filter(function (i) {
+      return (state.meal === "All" || i.meal === state.meal) && (state.loc === "All" || i.loc === state.loc) && (!q || i.name.toLowerCase().indexOf(q) >= 0);
+    });
+    var box = document.getElementById("menu");
+    box.textContent = "";
+    if (!shown.length) { box.appendChild(el("div", "empty", "조건에 맞는 메뉴가 없어요.")); return; }
+    shown.forEach(function (it) {
+      var row = el("div", "row");
+      var info = el("div", "info");
+      info.appendChild(el("div", "name", it.name));
+      info.appendChild(el("div", "sub", it.loc + " · " + (MEAL_KO[it.meal] || it.meal) + " · " + (it.serving || "1회") + " · P " + r(it.p) + "g"));
+      var add = el("button", "add", "+"); add.type = "button"; add.setAttribute("aria-label", it.name + " 추가");
+      add.onclick = function () { addLog(it.id); };
+      row.appendChild(info); row.appendChild(el("div", "kc", r(it.cal) + " kcal")); row.appendChild(add);
+      box.appendChild(row);
+    });
+  }
+
+  function applyMenu(d, resetLog) {
+    if (!d || !d.items || !d.items.length) throw new Error("empty menu");
+    state.menu = { date: d.date || state.day, items: d.items.map(function (i, n) {
+      return { id: String(i.id || "m" + n), name: String(i.name), serving: i.serving || "", cal: +i.cal || 0, p: +i.p || 0, c: +i.c || 0, f: +i.f || 0, loc: i.loc || "", meal: i.meal || "Lunch" };
+    }) };
+    if (resetLog) state.log = [];
+    state.meal = "All"; state.loc = "All";
+    save(); render();
+  }
+
+  function render() { renderSummary(); renderLog(); renderMenu(); }
+
+  document.getElementById("date").textContent = new Date().toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+  load();
+  var goalIn = document.getElementById("goal");
+  goalIn.value = state.goal;
+  goalIn.addEventListener("input", function () { state.goal = goalIn.value; save(); renderSummary(); });
+  document.getElementById("q").addEventListener("input", function (e) { state.q = e.target.value; renderMenu(); });
+  document.getElementById("clear").onclick = function () { state.log = []; save(); render(); };
+
+  document.getElementById("customForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var num = function (id) { var v = parseFloat(document.getElementById(id).value); return isNaN(v) ? 0 : v; };
+    var it = { id: "c" + Date.now(), name: document.getElementById("cName").value.trim(), serving: document.getElementById("cServ").value.trim() || "1회",
+      cal: num("cCal"), p: num("cP"), c: num("cC"), f: num("cF"), loc: "직접 추가", meal: "Custom" };
+    if (!it.name) return;
+    state.custom.push(it);
+    state.log.push({ id: it.id, qty: 1 });
+    e.target.reset(); save(); render();
+  });
+
+  document.getElementById("file").addEventListener("change", function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    var fr = new FileReader();
+    fr.onload = function () {
+      try {
+        applyMenu(JSON.parse(fr.result), true);
+      } catch (err) { document.getElementById("menuMeta").textContent = "파일을 읽지 못했어요. menu.json 형식을 확인하세요."; }
+    };
+    fr.readAsText(f);
+  });
+  document.getElementById("reset").onclick = function () { state.menu = SAMPLE; state.log = []; state.meal = "All"; state.loc = "All"; save(); render(); };
+
+  render();
+
+  // When hosted next to a menu.json (see README), load the latest menu on every visit.
+  try {
+    fetch("menu.json", { cache: "no-store" })
+      .then(function (res) { return res.ok ? res.json() : Promise.reject(new Error("no menu.json")); })
+      .then(function (d) { applyMenu(d, false); })
+      .catch(function () {});
+  } catch (e) {}
+})();
+</script>
