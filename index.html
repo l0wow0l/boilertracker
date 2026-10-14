@@ -61,6 +61,12 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; let
 .macro { font-size: .78rem; color: var(--muted); }
 .macro b { display: block; font-family: var(--font-num); font-weight: 500; font-size: 1.05rem; color: var(--ink); }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+.macro small { font-size: .72rem; font-weight: 400; color: var(--muted); }
+.mtrack { height: 4px; border-radius: 2px; background: var(--line); margin-top: 4px; overflow: hidden; }
+.mtrack i { display: block; height: 100%; width: 0; }
+.goals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.goals label { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; color: var(--muted); }
+.goals input { width: 100%; min-width: 0; padding: 12px; font-size: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
 
 section { margin-top: 24px; }
 h2 { font-family: var(--font-display); font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -112,9 +118,9 @@ code { font-family: var(--font-num); font-size: .82em; background: var(--gold-so
     </div>
     <div class="bar" id="bar" aria-hidden="true"></div>
     <div class="macros">
-      <div class="macro"><span class="dot" style="background:var(--protein)"></span>Protein<b id="mp">0g</b></div>
-      <div class="macro"><span class="dot" style="background:var(--carb)"></span>Carbs<b id="mc">0g</b></div>
-      <div class="macro"><span class="dot" style="background:var(--fat)"></span>Fat<b id="mf">0g</b></div>
+      <div class="macro"><span class="dot" style="background:var(--protein)"></span>Protein<b><span id="mp">0g</span><small id="mpg"></small></b><div class="mtrack" id="mpt" hidden><i id="mpb" style="background:var(--protein)"></i></div></div>
+      <div class="macro"><span class="dot" style="background:var(--carb)"></span>Carbs<b><span id="mc">0g</span><small id="mcg"></small></b><div class="mtrack" id="mct" hidden><i id="mcb" style="background:var(--carb)"></i></div></div>
+      <div class="macro"><span class="dot" style="background:var(--fat)"></span>Fat<b><span id="mf">0g</span><small id="mfg"></small></b><div class="mtrack" id="mft" hidden><i id="mfb" style="background:var(--fat)"></i></div></div>
     </div>
   </header>
 
@@ -130,6 +136,18 @@ code { font-family: var(--font-num); font-size: .82em; background: var(--gold-so
     <input class="search" id="q" type="search" placeholder="Search menu (e.g. chicken)" aria-label="Search menu">
     <div class="list" id="menu"></div>
   </section>
+
+  <details>
+    <summary>Daily macro goals</summary>
+    <div class="panel">
+      <p>Set a daily goal in grams for protein, carbs and fat. Your progress shows under each number at the top. Leave a box empty to turn that goal off.</p>
+      <div class="goals">
+        <label for="gP">Protein (g)<input id="gP" type="number" inputmode="numeric" min="0" step="5" placeholder="—"></label>
+        <label for="gC">Carbs (g)<input id="gC" type="number" inputmode="numeric" min="0" step="5" placeholder="—"></label>
+        <label for="gF">Fat (g)<input id="gF" type="number" inputmode="numeric" min="0" step="5" placeholder="—"></label>
+      </div>
+    </div>
+  </details>
 
   <details>
     <summary>Add custom food · Load menu</summary>
@@ -175,7 +193,7 @@ code { font-family: var(--font-num); font-size: .82em; background: var(--gold-so
   };
   var MEAL_KO = { All: "All", Breakfast: "Breakfast", Lunch: "Lunch", Dinner: "Dinner", Custom: "Custom" };
   var KEY = "boilerTray.v1";
-  var state = { menu: SAMPLE, custom: [], log: [], goal: "", meal: "All", loc: "All", q: "", day: today() };
+  var state = { menu: SAMPLE, custom: [], log: [], goal: "", goals: { p: "", c: "", f: "" }, meal: "All", loc: "All", q: "", day: today() };
 
   function today() {
     var d = new Date();
@@ -189,12 +207,13 @@ code { font-family: var(--font-num); font-size: .82em; background: var(--gold-so
       if (s.menu && s.menu.items) state.menu = s.menu;
       if (Array.isArray(s.custom)) state.custom = s.custom;
       if (s.goal) state.goal = s.goal;
+      if (s.goals) state.goals = { p: s.goals.p || "", c: s.goals.c || "", f: s.goals.f || "" };
       if (s.day === state.day && Array.isArray(s.log)) state.log = s.log;
     } catch (e) {}
   }
   function save() {
     try {
-      localStorage.setItem(KEY, JSON.stringify({ menu: state.menu, custom: state.custom, log: state.log, goal: state.goal, day: state.day }));
+      localStorage.setItem(KEY, JSON.stringify({ menu: state.menu, custom: state.custom, log: state.log, goal: state.goal, goals: state.goals, day: state.day }));
     } catch (e) {}
   }
   function allItems() { return state.menu.items.concat(state.custom); }
@@ -223,9 +242,14 @@ code { font-family: var(--font-num); font-size: .82em; background: var(--gold-so
       t.cal += it.cal * l.qty; t.p += (it.p || 0) * l.qty; t.c += (it.c || 0) * l.qty; t.f += (it.f || 0) * l.qty;
     });
     document.getElementById("kcal").textContent = r(t.cal).toLocaleString();
-    document.getElementById("mp").textContent = r(t.p) + "g";
-    document.getElementById("mc").textContent = r(t.c) + "g";
-    document.getElementById("mf").textContent = r(t.f) + "g";
+    [["p", "mp", t.p], ["c", "mc", t.c], ["f", "mf", t.f]].forEach(function (m) {
+      var gv = parseFloat(state.goals[m[0]]), id = m[1], val = m[2];
+      document.getElementById(id).textContent = r(val) + "g";
+      document.getElementById(id + "g").textContent = gv > 0 ? " / " + gv + "g" : "";
+      var track = document.getElementById(id.slice(0, 2) + "t");
+      track.hidden = !(gv > 0);
+      if (gv > 0) document.getElementById(id.slice(0, 2) + "b").style.width = Math.min(100, val / gv * 100) + "%";
+    });
     var bar = document.getElementById("bar");
     bar.textContent = "";
     var kp = t.p * 4, kc = t.c * 4, kf = t.f * 9, sum = kp + kc + kf;
@@ -327,6 +351,11 @@ code { font-family: var(--font-num); font-size: .82em; background: var(--gold-so
   var goalIn = document.getElementById("goal");
   goalIn.value = state.goal;
   goalIn.addEventListener("input", function () { state.goal = goalIn.value; save(); renderSummary(); });
+  [["gP", "p"], ["gC", "c"], ["gF", "f"]].forEach(function (g) {
+    var inp = document.getElementById(g[0]);
+    inp.value = state.goals[g[1]];
+    inp.addEventListener("input", function () { state.goals[g[1]] = inp.value; save(); renderSummary(); });
+  });
   document.getElementById("q").addEventListener("input", function (e) { state.q = e.target.value; renderMenu(); });
   document.getElementById("clear").onclick = function () { state.log = []; save(); render(); };
 
