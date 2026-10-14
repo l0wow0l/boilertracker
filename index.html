@@ -1,3 +1,11 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Boiler Tray">
 <title>Boiler Tray</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap">
@@ -31,10 +39,10 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 0 48px; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; padding-inline: 16px; padding-block: 0 calc(48px + env(safe-area-inset-bottom, 0px)); -webkit-text-size-adjust: 100%; }
 .wrap { max-width: 520px; margin-inline: auto; }
 button, input, select { font: inherit; color: inherit; }
-button { cursor: pointer; }
+button { cursor: pointer; touch-action: manipulation; }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
 
@@ -46,7 +54,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; let
 .kcal strong { font-family: var(--font-display); font-weight: 800; font-size: 2.6rem; line-height: 1; }
 .kcal span { color: var(--muted); font-size: .9rem; }
 .goal { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: .8rem; color: var(--muted); }
-.goal input { width: 4.8em; padding: 4px 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; text-align: right; }
+.goal input { width: 5.2em; padding: 6px 8px; font-size: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; text-align: right; }
 .bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--line); margin-top: 10px; }
 .bar i { display: block; height: 100%; }
 .macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
@@ -59,35 +67,39 @@ h2 { font-family: var(--font-display); font-size: .78rem; font-weight: 700; lett
 .linkbtn { background: none; border: 0; color: var(--gold); font-size: .8rem; padding: 4px 0; text-transform: none; letter-spacing: 0; font-family: var(--font-body); }
 
 .list { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
-.row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; }
 .row .info { flex: 1; min-width: 0; }
 .row .name { font-weight: 500; overflow-wrap: anywhere; }
-.row .sub { color: var(--muted); font-size: .78rem; }
+.row .sub { color: var(--muted); font-size: .82rem; }
 .row .kc { font-family: var(--font-num); font-size: .9rem; white-space: nowrap; }
 .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
-.stepper button { width: 32px; height: 32px; background: none; border: 0; font-size: 1.1rem; }
+.stepper button { width: 42px; height: 40px; background: none; border: 0; font-size: 1.1rem; }
 .stepper span { min-width: 2.6em; text-align: center; font-family: var(--font-num); font-size: .85rem; }
-.add { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--gold); background: var(--gold-soft); color: var(--gold); font-size: 1.3rem; line-height: 1; }
+.add { width: 48px; height: 44px; border-radius: 8px; border: 1px solid var(--gold); background: var(--gold-soft); color: var(--gold); font-size: 1.3rem; line-height: 1; }
 .empty { padding: 18px 0; color: var(--muted); font-size: .9rem; }
 
 .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; font-size: .82rem; color: var(--muted); }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 9px 15px; font-size: .9rem; color: var(--muted); }
 .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.search { width: 100%; padding: 9px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; }
+.search { width: 100%; padding: 12px 14px; font-size: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; }
 
 details { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 10px; }
-summary { cursor: pointer; font-weight: 500; }
+summary { cursor: pointer; font-weight: 500; padding-block: 8px; }
 .panel { display: flex; flex-direction: column; gap: 10px; padding-block: 12px; font-size: .88rem; }
 .panel p { margin: 0; color: var(--muted); }
 .form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.form input { width: 100%; min-width: 0; padding: 8px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.form input { width: 100%; min-width: 0; padding: 12px; font-size: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
 .form .full { grid-column: 1 / -1; }
-.btn { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); font-weight: 500; }
+.btn { padding: 13px 16px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); font-weight: 500; }
 .btn.ghost { background: none; color: var(--ink); border-color: var(--line); }
 code { font-family: var(--font-num); font-size: .82em; background: var(--gold-soft); padding: 1px 5px; border-radius: 4px; }
 .note { font-size: .78rem; color: var(--muted); margin-top: 16px; }
 </style>
 
+<style>html { padding-top: env(safe-area-inset-top, 0px); } body { margin: 0; }</style>
+</head>
+<body>
 <div class="wrap">
   <header class="tray">
     <div class="tray-top">
@@ -247,7 +259,8 @@ code { font-family: var(--font-num); font-size: .82em; background: var(--gold-so
       plus.onclick = function () { stepLog(l.id, 1); };
       st.appendChild(minus); st.appendChild(el("span", null, "×" + l.qty)); st.appendChild(plus);
       var kc = el("div", "kc", r(it.cal * l.qty) + " kcal");
-      row.appendChild(info); row.appendChild(kc); row.appendChild(st);
+      var side = el("div", "side"); side.appendChild(kc); side.appendChild(st);
+      row.appendChild(info); row.appendChild(side);
       box.appendChild(row);
     });
   }
@@ -291,7 +304,8 @@ code { font-family: var(--font-num); font-size: .82em; background: var(--gold-so
       info.appendChild(el("div", "sub", it.loc + " · " + (MEAL_KO[it.meal] || it.meal) + " · " + (it.serving || "1회") + " · P " + r(it.p) + "g"));
       var add = el("button", "add", "+"); add.type = "button"; add.setAttribute("aria-label", it.name + " 추가");
       add.onclick = function () { addLog(it.id); };
-      row.appendChild(info); row.appendChild(el("div", "kc", r(it.cal) + " kcal")); row.appendChild(add);
+      var side = el("div", "side"); side.appendChild(el("div", "kc", r(it.cal) + " kcal")); side.appendChild(add);
+      row.appendChild(info); row.appendChild(side);
       box.appendChild(row);
     });
   }
@@ -350,3 +364,6 @@ code { font-family: var(--font-num); font-size: .82em; background: var(--gold-so
   } catch (e) {}
 })();
 </script>
+
+</body>
+</html>
